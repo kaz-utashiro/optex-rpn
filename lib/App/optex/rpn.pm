@@ -18,12 +18,17 @@ B<rpn> is a filter module for B<optex> command which detect command
 arguments which look like Reverse Polish Notation, and replace it by
 the result of calculation.
 
+See L<Math::RPN> for Reverse Polish Noatation detail.
 
 =head1 EXAMPLE
 
-Prevent to suspend macOS for 5 hours.
+Prevent macOS to suspend for 5 hours.
 
-    $ optex -Mrpn caffeinate -d '3600,5,*'
+    $ optex -Mrpn caffeinate -d -t '3600,5,*'
+
+=head1 INSTALL
+
+cpanm https://github.com/kaz-utashiro/optex-rpn.git
 
 =head1 SEE ALSO
 
@@ -32,6 +37,8 @@ L<App::optex>, L<https://github.com/kaz-utashiro/optex>
 L<App::optex::rpn>, L<https://github.com/kaz-utashiro/optex-rpn>
 
 L<https://qiita.com/kaz-utashiro/items/2df8c7fbd2fcb880cee6>
+
+L<Math::RPN>
 
 =head1 AUTHOR
 
@@ -76,8 +83,8 @@ RAND  LRAND
 END
 
 my $operator_re = join '|', map "\Q$_", @operator;
-my $digit_re = qr/(?:\d*\.)?\d+/;
-my $rpn_re = qr/$digit_re(?:[\s,]+|$digit_re|$operator_re)+/i;
+my $term_re = qr/(?:\d*\.)?\d+|$operator_re/i;
+my $rpn_re = qr/(?: $term_re ,* ){2,}/xi;
 
 sub rpn_calc {
     use Math::RPN();
@@ -85,7 +92,7 @@ sub rpn_calc {
     my @terms = map { /$re/g } @_;
     my @ans = Math::RPN::rpn @terms;
     if (@ans == 1 && $ans[0] && $ans[0] !~ /[^\.\d]/) {
-	int $ans[0];
+	$ans[0];
     } else {
 	return undef;
     }
@@ -97,11 +104,11 @@ sub rpn {
 	my($cmd, @arg) = @_;
 	my $count;
 	for (@arg) {
-	    if (/^$rpn_re$/ and my $calc = rpn_calc($_)) {
-		if ($calc ne $_) {
-		    $count++;
-		    $_ = $calc;
-		}
+	    /^$rpn_re$/ or next;
+	    my $calc = rpn_calc($_) or next;
+	    if ($calc ne $_) {
+		$count++;
+		$_ = $calc;
 	    }
 	}
 	warn "exec: $cmd @arg\n";
