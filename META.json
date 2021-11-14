@@ -43,6 +43,7 @@
       "runtime" : {
          "requires" : {
             "App::optex" : "v0.5.2",
+            "Math::RPN" : "0",
             "perl" : "v5.14.0"
          }
       },
@@ -53,6 +54,17 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/kaz-utashiro/optex-rpn/issues"
+      },
+      "homepage" : "https://github.com/kaz-utashiro/optex-rpn",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/kaz-utashiro/optex-rpn.git",
+         "web" : "https://github.com/kaz-utashiro/optex-rpn"
+      }
+   },
    "version" : "1.01",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
