@@ -6,19 +6,30 @@ rpn - Reverse Polish Notation calculation
 
     optex -Mrpn command ...
 
+# VERSION
+
+Version 1.01
+
 # DESCRIPTION
 
-**rpn** is a filter module for **optex** command which detect command
-arguments which look like Reverse Polish Notation, and replace it by
-the result of calculation.
+**rpn** is a filter module for **optex** command to detect arguments
+which look like Reverse Polish Notation (RPN), and replace them by the
+result of calculation.
 
 See [Math::RPN](https://metacpan.org/pod/Math::RPN) for Reverse Polish Noatation detail.
+
+Since RPN part requires two terms at least,
+
+    optex -Mrpn echo RAND
+
+print just "RAND".  Use something like `RAND,0+` to get random
+number.
 
 # EXAMPLE
 
 Prevent macOS to suspend for 5 hours.
 
-    $ optex -Mrpn caffeinate -d -t '3600,5,*'
+    $ optex -Mrpn caffeinate -d -t 3600,5*
 
 # INSTALL
 

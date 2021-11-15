@@ -12,19 +12,30 @@ rpn - Reverse Polish Notation calculation
 
     optex -Mrpn command ...
 
+=head1 VERSION
+
+Version 1.01
+
 =head1 DESCRIPTION
 
-B<rpn> is a filter module for B<optex> command which detect command
-arguments which look like Reverse Polish Notation, and replace it by
-the result of calculation.
+B<rpn> is a filter module for B<optex> command to detect arguments
+which look like Reverse Polish Notation (RPN), and replace them by the
+result of calculation.
 
 See L<Math::RPN> for Reverse Polish Noatation detail.
+
+Since RPN part requires two terms at least,
+
+    optex -Mrpn echo RAND
+
+print just "RAND".  Use something like C<RAND,0+> to get random
+number.
 
 =head1 EXAMPLE
 
 Prevent macOS to suspend for 5 hours.
 
-    $ optex -Mrpn caffeinate -d -t '3600,5,*'
+    $ optex -Mrpn caffeinate -d -t 3600,5*
 
 =head1 INSTALL
 
@@ -60,6 +71,11 @@ use utf8;
 use open IO => 'utf8', ':std';
 use Data::Dumper;
 
+our %option = (
+    debug   => 0,
+    verbose => 0,
+    );
+
 my($mod, $argv);
 sub initialize { ($mod, $argv) = @_ }
 
@@ -68,7 +84,7 @@ sub argv (&) {
     @$argv = $sub->(@$argv);
 }
 
-my @operator = sort { length $a <=> length $b } split /[,\s]+/, <<'END';
+my @operator = sort { length $b <=> length $a } split /[,\s]+/, <<'END';
 +,ADD  ++,INCR  -,SUB  --,DECR  *,MUL  /,DIV  %,MOD  POW  SQRT
 SIN  COS  TAN
 LOG  EXP
@@ -83,15 +99,14 @@ RAND  LRAND
 END
 
 my $operator_re = join '|', map "\Q$_", @operator;
-my $term_re = qr/(?:\d*\.)?\d+|$operator_re/i;
-my $rpn_re = qr/(?: $term_re ,* ){2,}/xi;
+my $term_re     = qr/(?:\d*\.)?\d+|$operator_re/i;
+my $rpn_re      = qr/(?: $term_re ,* ){2,}/xi;
 
 sub rpn_calc {
-    use Math::RPN();
-    state $re = qr/(?:\d*\.)?\d+|[_a-z]+|--|\+\+|[<>!]=|\S/i;
-    my @terms = map { /$re/g } @_;
-    my @ans = Math::RPN::rpn @terms;
-    if (@ans == 1 && $ans[0] && $ans[0] !~ /[^\.\d]/) {
+    use Math::RPN ();
+    my @terms = map { /$term_re/g } @_;
+    my @ans = do { local $_; Math::RPN::rpn @terms };
+    if (@ans == 1 && defined $ans[0] && $ans[0] !~ /[^\.\d]/) {
 	$ans[0];
     } else {
 	return undef;
@@ -105,15 +120,25 @@ sub rpn {
 	my $count;
 	for (@arg) {
 	    /^$rpn_re$/ or next;
-	    my $calc = rpn_calc($_) or next;
+	    my $calc = rpn_calc($_) // next;
 	    if ($calc ne $_) {
 		$count++;
 		$_ = $calc;
 	    }
 	}
-	warn "exec: $cmd @arg\n";
+	warn "exec: $cmd @arg\n" if $option{verbose};
 	($cmd, @arg);
     };
+}
+
+sub option {
+    while (my($k, $v) = splice @_, 0, 2) {
+	if ($k =~ s/^no-?//) {
+	    $option{$k} = 0;
+	} else {
+	    $option{$k} = $v;
+	}
+    }
 }
 
 1;
