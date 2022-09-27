@@ -22,7 +22,7 @@ B<rpn> is a filter module for B<optex> command to detect arguments
 which look like Reverse Polish Notation (RPN), and replace them by the
 result of calculation.
 
-See L<Math::RPN> for Reverse Polish Noatation detail.
+See L<Math::RPN> for Reverse Polish Notation detail.
 
 Since RPN part requires two terms at least,
 
@@ -39,7 +39,9 @@ Prevent macOS to suspend for 5 hours.
 
 =head1 INSTALL
 
-cpanm https://github.com/kaz-utashiro/optex-rpn.git
+=head2 CPANMINUS
+
+cpanm App::optex::rpn
 
 =head1 SEE ALSO
 
