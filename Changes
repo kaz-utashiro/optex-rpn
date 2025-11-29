@@ -2,6 +2,10 @@ Revision history for Perl extension App-optex-rpn
 
 {{$NEXT}}
 
+1.02 2025-11-29T09:33:32Z
+
+    - Fix infinite loop and add Getopt::EX::Config support
+
 1.01 2021-11-15T10:04:45Z
 
     - original version
