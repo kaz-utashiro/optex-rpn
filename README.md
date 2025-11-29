@@ -15,26 +15,30 @@ them with their calculated results.
 By default, all arguments are processed automatically when the module
 is loaded.
 
-# OPTIONS
+# MODULE OPTIONS
 
-Options can be set via `-Mrpn::config(...)` or `--option` before
-`--`.
+Module options can be set via `-Mrpn::config(...)` or `--option`
+before `--`.
 
-- **--all**, **--no-all**
+- **--auto**, **--no-auto**
 
     Enable or disable automatic processing of all arguments.  Default is
-    enabled.  Use `--no-all` to disable and process only arguments
+    enabled.  Use `--no-auto` to disable and process only arguments
     specified by `--rpn`.
 
 - **--verbose**
 
     Print diagnostic messages.
 
+# COMMAND OPTIONS
+
+These options are available after `--`.
+
 - **--rpn** _expression_
 
     Convert a single RPN expression.
 
-        optex -Mrpn --no-all -- printf '%s = %d\n' 3600,5* --rpn 3600,5*
+        optex -Mrpn --no-auto -- printf '%s = %d\n' 3600,5* --rpn 3600,5*
         # outputs: 3600,5* = 18000
 
 # EXPRESSIONS

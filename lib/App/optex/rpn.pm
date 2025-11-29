@@ -21,28 +21,36 @@ them with their calculated results.
 By default, all arguments are processed automatically when the module
 is loaded.
 
-=head1 OPTIONS
+=head1 MODULE OPTIONS
 
-Options can be set via C<-Mrpn::config(...)> or C<--option> before
-C<-->.
+Module options can be set via C<-Mrpn::config(...)> or C<--option>
+before C<-->.
 
 =over 4
 
-=item B<--all>, B<--no-all>
+=item B<--auto>, B<--no-auto>
 
 Enable or disable automatic processing of all arguments.  Default is
-enabled.  Use C<--no-all> to disable and process only arguments
+enabled.  Use C<--no-auto> to disable and process only arguments
 specified by C<--rpn>.
 
 =item B<--verbose>
 
 Print diagnostic messages.
 
+=back
+
+=head1 COMMAND OPTIONS
+
+These options are available after C<-->.
+
+=over 4
+
 =item B<--rpn> I<expression>
 
 Convert a single RPN expression.
 
-    optex -Mrpn --no-all -- printf '%s = %d\n' 3600,5* --rpn 3600,5*
+    optex -Mrpn --no-auto -- printf '%s = %d\n' 3600,5* --rpn 3600,5*
     # outputs: 3600,5* = 18000
 
 =back
@@ -160,7 +168,7 @@ use Data::Dumper;
 
 use Getopt::EX::Config;
 my $config = Getopt::EX::Config->new(
-    all     => 1,
+    auto    => 1,
     verbose => 0,
 );
 
@@ -168,8 +176,8 @@ my($mod, $argv);
 sub initialize { ($mod, $argv) = @_ }
 
 sub finalize {
-    $config->deal_with($argv, 'all!', 'verbose!');
-    rpn() if $config->{all};
+    $config->deal_with($argv, 'auto!', 'verbose!');
+    rpn() if $config->{auto};
 }
 
 sub argv (&) {
