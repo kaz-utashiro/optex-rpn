@@ -40,20 +40,18 @@ Print diagnostic messages.
 
 =item B<--rpn> I<expression>
 
-Convert a single RPN expression.  Use colon (C<:>) instead of comma
-as the term separator because comma is used as a parameter delimiter
-in the module call syntax.
+Convert a single RPN expression.
 
-    optex -Mrpn --no-all -- echo --rpn 3600:5* hello
-    # outputs: 18000 hello
+    optex -Mrpn --no-all -- printf '%s = %d\n' 3600,5* --rpn 3600,5*
+    # outputs: 3600,5* = 18000
 
 =back
 
 =head1 EXPRESSIONS
 
-An RPN expression requires at least two terms separated by commas (or
-colons when using C<--rpn>).  A single term like C<RAND> will not be
-converted, but C<RAND,0+> will produce a random number.
+An RPN expression requires at least two terms separated by commas or
+colons.  A single term like C<RAND> will not be converted, but
+C<RAND,0+> will produce a random number.
 
 =head2 OPERATORS
 
@@ -223,7 +221,8 @@ sub rpn {
 }
 
 sub convert {
-    my $target = shift;
+    my %arg = @_;
+    my $target = $arg{rpn} // die "rpn: missing expression\n";
     if ($target =~ /^$rpn_re$/) {
 	my $calc = rpn_calc($target);
 	if (defined $calc && $calc ne $target) {
@@ -237,6 +236,6 @@ sub convert {
 
 __DATA__
 
-option --rpn -M__PACKAGE__::convert($<shift>)
+option --rpn -M__PACKAGE__::convert(rpn~$<shift>)
 
 #  LocalWords:  rpn optex macOS

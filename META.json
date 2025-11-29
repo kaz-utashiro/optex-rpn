@@ -43,7 +43,7 @@
       "runtime" : {
          "requires" : {
             "App::optex" : "1.02",
-            "Getopt::EX::Config" : "0",
+            "Getopt::EX" : "3.01",
             "Math::RPN" : "0",
             "perl" : "v5.14.0"
          }

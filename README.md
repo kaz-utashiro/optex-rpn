@@ -32,18 +32,16 @@ Options can be set via `-Mrpn::config(...)` or `--option` before
 
 - **--rpn** _expression_
 
-    Convert a single RPN expression.  Use colon (`:`) instead of comma
-    as the term separator because comma is used as a parameter delimiter
-    in the module call syntax.
+    Convert a single RPN expression.
 
-        optex -Mrpn --no-all -- echo --rpn 3600:5* hello
-        # outputs: 18000 hello
+        optex -Mrpn --no-all -- printf '%s = %d\n' 3600,5* --rpn 3600,5*
+        # outputs: 3600,5* = 18000
 
 # EXPRESSIONS
 
-An RPN expression requires at least two terms separated by commas (or
-colons when using `--rpn`).  A single term like `RAND` will not be
-converted, but `RAND,0+` will produce a random number.
+An RPN expression requires at least two terms separated by commas or
+colons.  A single term like `RAND` will not be converted, but
+`RAND,0+` will produce a random number.
 
 ## OPERATORS
 
