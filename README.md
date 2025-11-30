@@ -26,6 +26,50 @@ before `--`.
     enabled.  Use `--no-auto` to disable and process only arguments
     specified by `--rpn`.
 
+- **-p** _name\_or\_regex_, **--pattern** _name\_or\_regex_
+
+    Specify a pattern to match RPN expressions.  The value can be either a
+    preset name (word characters only, prefix match supported) or a
+    custom regex pattern.
+
+    When `--pattern` is specified, `--auto` is ignored.
+
+    **Preset patterns:**
+
+    - `rpn`
+
+        Matches `rpn(...)` and extracts the content inside parentheses.
+
+    - `equal`
+
+        Matches `...=` at the end and extracts the expression before `=`.
+
+    **Custom patterns:**
+
+    When the value contains non-word characters, it is treated as a
+    regex pattern.  The pattern must contain a capture group `(...)` that
+    captures the RPN expression.  The entire matched portion is replaced
+    with the calculated result.
+
+    Examples:
+
+        # Use preset pattern 'rpn' (or -pr for short)
+        optex -Mrpn -pr -- echo '3600*5' '=' rpn(3600,5*)
+        # outputs: 3600*5 = 18000
+
+        # Use preset pattern 'equal' (or -pe for short)
+        optex -Mrpn -pe -- echo '3600*5' '=' 3600,5*=
+        # outputs: 3600*5 = 18000
+
+        # Use custom regex pattern
+        optex -Mrpn --pattern 'calc\[(.*)\]' -- echo calc[3600,5*]
+        # outputs: 18000
+
+- **--quiet**, **--no-quiet**
+
+    Suppress Math::RPN warning messages.  Default is enabled.  Use
+    `--no-quiet` to see warnings for invalid expressions.
+
 - **--verbose**
 
     Print diagnostic messages.

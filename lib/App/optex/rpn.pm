@@ -34,6 +34,54 @@ Enable or disable automatic processing of all arguments.  Default is
 enabled.  Use C<--no-auto> to disable and process only arguments
 specified by C<--rpn>.
 
+=item B<-p> I<name_or_regex>, B<--pattern> I<name_or_regex>
+
+Specify a pattern to match RPN expressions.  The value can be either a
+preset name (word characters only, prefix match supported) or a
+custom regex pattern.
+
+When C<--pattern> is specified, C<--auto> is ignored.
+
+B<Preset patterns:>
+
+=over 4
+
+=item C<rpn>
+
+Matches C<rpn(...)> and extracts the content inside parentheses.
+
+=item C<equal>
+
+Matches C<...=> at the end and extracts the expression before C<=>.
+
+=back
+
+B<Custom patterns:>
+
+When the value contains non-word characters, it is treated as a
+regex pattern.  The pattern must contain a capture group C<(...)> that
+captures the RPN expression.  The entire matched portion is replaced
+with the calculated result.
+
+Examples:
+
+    # Use preset pattern 'rpn' (or -pr for short)
+    optex -Mrpn -pr -- echo '3600*5' '=' rpn(3600,5*)
+    # outputs: 3600*5 = 18000
+
+    # Use preset pattern 'equal' (or -pe for short)
+    optex -Mrpn -pe -- echo '3600*5' '=' 3600,5*=
+    # outputs: 3600*5 = 18000
+
+    # Use custom regex pattern
+    optex -Mrpn --pattern 'calc\[(.*)\]' -- echo calc[3600,5*]
+    # outputs: 18000
+
+=item B<--quiet>, B<--no-quiet>
+
+Suppress Math::RPN warning messages.  Default is enabled.  Use
+C<--no-quiet> to see warnings for invalid expressions.
+
 =item B<--verbose>
 
 Print diagnostic messages.
@@ -165,19 +213,24 @@ use Carp;
 use utf8;
 use open IO => 'utf8', ':std';
 use Data::Dumper;
-
 use Getopt::EX::Config;
 my $config = Getopt::EX::Config->new(
     auto    => 1,
     verbose => 0,
+    quiet   => 1,
+    pattern => undef,
 );
 
 my($mod, $argv);
 sub initialize { ($mod, $argv) = @_ }
 
 sub finalize {
-    $config->deal_with($argv, 'auto!', 'verbose!');
-    rpn() if $config->{auto};
+    $config->deal_with($argv, 'auto!', 'verbose!', 'quiet!', 'pattern|p=s');
+    if (defined $config->{pattern}) {
+	rpn_pattern($config->{pattern});
+    } elsif ($config->{auto}) {
+	rpn();
+    }
 }
 
 sub argv (&) {
@@ -203,10 +256,19 @@ my $operator_re = join '|', map "\Q$_", @operator;
 my $term_re     = qr/(?:\d*\.)?\d+|$operator_re/i;
 my $rpn_re      = qr/(?: $term_re [,:]* ){2,}/xi;
 
+my %preset_pattern = (
+    rpn   => qr/^rpn\((.+)\)$/,
+    equal => qr/^(.+)=$/,
+);
+
 sub rpn_calc {
     use Math::RPN ();
     my @terms = map { /$term_re/g } @_;
-    my @ans = do { local $_; Math::RPN::rpn @terms };
+    my @ans = do {
+	local $_;
+	local $SIG{__WARN__} = $config->{quiet} ? sub {} : undef;
+	Math::RPN::rpn @terms;
+    };
     if (@ans == 1 && defined $ans[0] && $ans[0] !~ /[^\.\d]/) {
 	$ans[0];
     } else {
@@ -223,6 +285,32 @@ sub rpn {
 	if ($calc ne $_) {
 	    $count++;
 	    $_ = $calc;
+	}
+    }
+    warn "rpn: converted $count expression(s)\n" if $config->{verbose} && $count;
+}
+
+sub rpn_pattern {
+    my $pattern = shift;
+    my $re;
+    if ($pattern =~ /^\w+$/) {
+	my @matches = grep { /^\Q$pattern/ } keys %preset_pattern;
+	@matches == 1 or die @matches == 0
+	    ? "rpn: unknown preset pattern '$pattern'\n"
+	    : "rpn: ambiguous preset pattern '$pattern' (matches: @matches)\n";
+	$re = $preset_pattern{$matches[0]};
+    } else {
+	$re = qr/$pattern/;
+    }
+    my $count = 0;
+    for (@$argv) {
+	/$re/ or next;
+	my $expr = $1 // next;
+	length $expr or next;
+	my $calc = rpn_calc($expr) // next;
+	if ($calc ne $expr) {
+	    $count++;
+	    s/$re/$calc/;
 	}
     }
     warn "rpn: converted $count expression(s)\n" if $config->{verbose} && $count;
