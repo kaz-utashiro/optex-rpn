@@ -332,6 +332,6 @@ sub convert {
 
 __DATA__
 
-option --rpn -M__PACKAGE__::convert(rpn~$<shift>)
+option --rpn -M__PACKAGE__::convert(rpn*=$<shift>)
 
 #  LocalWords:  rpn optex macOS
