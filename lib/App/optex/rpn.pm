@@ -1,6 +1,6 @@
 package App::optex::rpn;
 
-our $VERSION = "1.03";
+our $VERSION = "1.04";
 
 =encoding utf-8
 
